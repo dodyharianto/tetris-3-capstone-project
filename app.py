@@ -52,8 +52,11 @@ def introduction(df):
 
     displayed_df = df.copy()
     displayed_df['Tahun'] = displayed_df['Tahun'].astype('str')
+
     with st.expander('Lihat Data Tabular'):
-        st.dataframe(displayed_df, use_container_width=True)
+        sort_type = st.selectbox(label = 'Sortir Tahun', options = ['Terbaru', 'Terlama'])
+        ascending = True if sort_type == 'Terlama' else False
+        st.dataframe(displayed_df.sort_values('Tahun', ascending = ascending).reset_index().drop('index', axis = 1), use_container_width = True)
 
 def plot_line_chart(pivot_df, value_or_weight, export_or_import):
     # Plotly Chart
@@ -106,26 +109,37 @@ def plot_top_countries_by_export_value(year):
     top_10_countries = export_by_country_df.nlargest(10, str(year))
     top_10_countries = top_10_countries.sort_values(str(year), ascending=False)
 
-    # # Extract the required data for the chart
+    # Extract the required data for the chart
     countries = top_10_countries['Negara']
     values = top_10_countries[str(year)]
 
     # Define custom colors for the bars
-    colors = ['#ba1206',
-              '#02269e',
-              '#00a613',
-              '#ffffff',
-              '#f7db05',
-              '#1500ff',
-              '#006eff',
-              '#ff1100',
-              '#d61204',
-              '#fa795f']
+    color_dict = {
+        'China': '#ba1206',
+        'United States': '#001160',
+        'India': '#00a613',
+        'Japan': '#ffffff',
+        'Malaysia': '#f7db05',
+        'Philippines': '#1500ff',
+        'South Korea': '#006eff',
+        'Singapore': '#ff1100',
+        'Vietnam': '#d61204',
+        'Taiwan': '#fa795f',
+        'Thailand': '#0e2aaa'
+    }
 
     # Create a horizontal bar chart figure with custom colors
-    fig = go.Figure(data=go.Bar(y=countries, x=values,
-                                text = [str(round(v / 1000, 1)) + 'k' for v in values], textposition='auto',
-                                orientation='h', marker=dict(color=colors)))
+    fig = go.Figure(data=go.Bar(
+        y=countries,
+        x=values,
+        text=[str(round(v / 1000, 1)) + 'k' for v in values],
+        textposition='auto',
+        orientation='h'
+    ))
+
+    # Set custom colors for each bar using color_dict
+    colors = [color_dict.get(country, '#808080') for country in countries]
+    fig.update_traces(marker=dict(color=colors))
 
     # Set chart title and axis labels
     fig.update_layout(
